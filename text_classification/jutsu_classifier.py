@@ -20,7 +20,7 @@ class JujetsuClassifier:
                  model_path,
                  data_path=None,
                  text_column='text',
-                 label_column='jutsu',
+                 label_column='jutsus',
                  model_name='distilbert/distilbert-base-uncased',
                  test_size=0.2,
                  num_labels=3,
@@ -43,7 +43,7 @@ class JujetsuClassifier:
 
         if not huggingface_hub.repo_exists(self.model_path):
             if data_path is None:
-                raise ValueError('Data path is required to train model (model path does not exist in Huggingface Hub)')
+                raise ValueError('Data path is required to train model since model path does not exist in Huggingface Hub!')
             
             train_data, test_data = self.load_data(self.data_path)
 
@@ -65,7 +65,7 @@ class JujetsuClassifier:
     def train_model(self, train_data, test_data, class_weights):
         model = AutoModelForSequenceClassification.from_pretrained(self.model_name, 
                                                                    num_labels=self.num_labels,
-                                                                   id2labels=self.label_dict)
+                                                                   id2label=self.label_dict)
         
         data_collator = DataCollatorWithPadding(tokenizer=self.tokenizer)
 
@@ -108,7 +108,7 @@ class JujetsuClassifier:
         if 'Genjutsu' in jutsu:
             return 'Genjutsu'
         
-    def process_text(tself, tokenizer, samples):
+    def process_text(self, tokenizer, samples):
         return tokenizer(samples['text_cleaned'], truncation=True)
 
     def load_data (self, data_path):
@@ -125,9 +125,9 @@ class JujetsuClassifier:
 
         #encode labels
         le = preprocessing.LabelEncoder()
+        le.fit(data[self.label_column].tolist())
         label_dict = {index:label_name for index, label_name in enumerate(le.__dict__['classes_'].tolist())}
         self.label_dict = label_dict
-        le.fit(data[self.label_column].tolist())
         data['label'] = le.transform(data['jutsus'].tolist())
 
         #split data

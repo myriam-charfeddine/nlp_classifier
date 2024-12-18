@@ -2,6 +2,11 @@ import gradio as gr
 from theme_classifier import theme_classifier
 import pandas as pd
 from character_network import NamedEntityRecognizer, CharacterNetworkGenerator
+from text_classification import JujetsuClassifier
+# from chatbot import CharacterChatbot
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 def get_themes(theme_list_str,subtitles_path,save_path):
     theme_list = theme_list_str.split(',')
@@ -37,6 +42,23 @@ def get_character_network(subtitles_path, ner_save_path):
 
     return html
 
+def classify_text(model_path, data_path, text_to_classify):
+    jutsu_classifier = JujetsuClassifier(model_path = model_path, 
+                                        data_path = data_path,
+                                        huggingface_token=os.getenv('huggingface_token'))
+    output = jutsu_classifier.classify_jutsu(text_to_classify)
+    # output = output[0]
+    return output
+
+def chat_with_character_chatbot(message, history):
+    chatbot = CharacterChatbot('',   # Ex (check ur huggingface user name): MyriamCH/Naruto_Llama-3-8B
+                               huggingface_token=os.getenv('huggingface_token')) 
+    
+    output = chatbot.chat(message, history)
+    output = output['content'].strip()
+    return output
+
+
 def main():
   with gr.Blocks() as iface:
 
@@ -68,6 +90,27 @@ def main():
             ner_save_path = gr.Textbox(label = "NERs Save Path")
             network_generator_button = gr.Button("Get Character Network")
             network_generator_button.click(get_character_network, inputs=[subtitles_path, ner_save_path], outputs=[network_html]) 
+
+    #Text Classifiaction using LLMs Section 
+    with gr.Row():
+      with gr.Column():
+        gr.HTML('<h1>Text Classifiaction using LLMs</h1>')
+        with gr.Row():
+          with gr.Column():
+            text_classification_output = gr.Textbox(label='Text Classification Output')
+          with gr.Column():
+            model_path = gr.Textbox(label='Model Path')
+            data_path = gr.Textbox(label='Data Path')
+            text_to_classify = gr.Textbox(label='Text input')
+            classify_text_button = gr.Button("Clasify Text (Jutsu)")
+            classify_text_button.click(classify_text, inputs=[model_path, data_path, text_to_classify], outputs=[text_classification_output])
+
+    # #Character Chatbot Section using Llama3
+    # with gr.Row():
+    #   with gr.Column():
+    #     gr.HTML('<h1>Chat With The Serie\'s Main Character</h1>')
+    #     gr.ChatInterface(chat_with_character_chatbot)
+
           
           
             

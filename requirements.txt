@@ -6,5 +6,13 @@ transformers
 huggingface_hub
 nltk
 pyvis
+evaluate
+python-dotenv
+accelerate==0.28.0
+# git+https://github.com/huggingface/peft
+# trl
+# bitsandbytes
 
 
+#accelerate-0.28.0 (this should be installed
+#accelerate-1.2.0  (this version causes prob when training bert BUT was installed with butsandbytes)

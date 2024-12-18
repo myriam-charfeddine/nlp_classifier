@@ -4,20 +4,21 @@ from transformers import Trainer
 
 
 class CustomTrainer(Trainer):
-    def compute_loss(self, model, inputs, return_ouputs=False):
-        labels = inputs.get('labels')
+    def compute_loss(self,model,inputs,return_outputs=False):
+        labels = inputs.get("labels")
 
-        #Forward Pass
+        # Forward Pass
         outputs = model(**inputs)
-        logits = outputs.logits
+        logits = outputs.get("logits")
+        logits = logits.float()
+        
+        # Compute Custom Loss
+        loss_fct = nn.CrossEntropyLoss(weight = torch.tensor(self.class_weights, dtype=torch.float).to(device=self.device))
+        loss = loss_fct(logits.view(-1, self.model.config.num_labels ),labels.view(-1))
+        return (loss,outputs) if return_outputs else loss
 
-        #Compute Custom Loss
-        loss_fn = nn.CrossEntropyLoss(weight= torch.tensor(self.class_weights).to(device=self.device))
-        loss = loss_fn(logits.view(-1, self.model.config.num_labels), labels.view(-1))
-        return (loss, outputs) if return_ouputs else loss
-    
-    def set_compute_weights(self, class_weights):
+    def set_compute_weights(self,class_weights):
         self.class_weights = class_weights
-
-    def set_device(self, device):
+    
+    def set_device(self,device):
         self.device = device
